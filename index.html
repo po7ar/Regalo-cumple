@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feliz Cumpleaños Mi Amor</title>
+    <style>
+        /* --- ESTILOS GENERALES Y FONDO --- */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Para que los corazones no estiren la página */
+        }
+
+        /* Contenedor para los corazones que caen */
+        #falling-hearts-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Para que no interfieran con los clics */
+            z-index: 1;
+        }
+
+        .falling-heart {
+            position: absolute;
+            top: -10%;
+            font-size: 20px;
+            opacity: 0.7;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL DE LA TARJETA --- */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+            height: 500px; /* Altura fija para que el giro funcione bien */
+            perspective: 1000px; /* Necesario para el efecto 3D */
+        }
+
+        /* --- ESCENA 1: EL SOBRE CERRADO --- */
+        .envelope-stage {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s ease-in-out;
+            backface-visibility: hidden; /* Oculta la parte de atrás al girar */
+        }
+
+        /* Clase para ocultar el sobre */
+        .envelope-stage.hidden {
+            opacity: 0;
+            transform: scale(0.8) rotateY(-90deg);
+            pointer-events: none;
+        }
+
+        .envelope-stage h1 {
+            color: #d9534f;
+            margin: 0;
+            font-size: 2em;
+        }
+        .emojis-header { font-size: 3em; margin: 15px 0; }
+        .envelope-icon { font-size: 5em; margin: 20px 0; color: #ff7e67; }
+
+        .open-button {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+            animation: pulse 1.5s infinite;
+            transition: transform 0.2s;
+        }
+        .open-button:active { transform: scale(0.95); }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- ESCENA 2: LA CARTA GIRATORIA (FLIP CARD) --- */
+        /* El contenedor de la carta que va a girar */
+        .letter-stage {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d; /* Crucial para el 3D */
+            opacity: 0; /* Empieza invisible */
+            pointer-events: none;
+        }
+
+        /* Clase para mostrar la carta */
+        .letter-stage.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Clase que aplica el giro de 180 grados */
+        .letter-stage.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Estilos comunes para el frente y el reverso de la carta */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Oculta la cara opuesta */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer; /* Indica que se puede tocar */
+        }
+
+        /* --- EL FRENTE (LA FOTO) --- */
+        .card-front {
+            background: #fff;
+        }
+
+        /* PONE TU FOTO AQUÍ: Ajusta la imagen para que cubra toda la tarjeta */
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Asegura que la foto llene el espacio sin deformarse */
+        }
+        .tap-hint {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(255,255,255,0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        /* --- EL REVERSO (EL MENSAJE) --- */
+        .card-back {
+            background: #fff0f3; /* Un rosa muy clarito tipo papel */
+            transform: rotateY(180deg); /* Ya está girada de inicio */
+            padding: 30px;
+            box-sizing: border-box;
+            text-align: center;
+            border: 2px solid #ffb6c1;
+        }
+
+        .message-content h2 { color: #d9534f; margin-top: 0; }
+        .message-content p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #444;
+        }
+        .signature { margin-top: 25px; font-weight: bold; color: #d9534f; }
+
+    </style>
+</head>
+<body>
+
+<div id="falling-hearts-container"></div>
+
+<div class="main-container">
+
+    <div class="envelope-stage" id="envelopeStage">
+        <h1>Feliz Cumpleaños Corazon</h1>
+        <div class="emojis-header">🎈🎁✨</div>
+        <div class="envelope-icon">💌</div>
+        <button class="open-button" id="openBtn">
+            ❤️ Toca Aquí
+        </button>
+    </div>
+
+    <div class="letter-stage" id="letterCard">
+
+        <div class="card-face card-front">
+            <img src="foto.jpg" alt="Foto de nosotros">
+            <div class="tap-hint">👆 Toca la foto aqui</div>
+        </div>
+
+        <div class="card-face card-back">
+            <div class="message-content">
+                <h2>Mi Amor ❤️</h2>
+                <p>
+                    ¡Feliz cumpleaños a la persona que hace que mi mundo sea más bonito!
+                    <br><br>
+                    Parece increíble que ya haya pasado tanto tiempo. Gracias por cada risa, por cada apoyo y por ser mi mejor equipo. Verte feliz es mi regalo favorito.
+                    <br><br>
+                    Que este nuevo año te llene de tanta alegría como tú me das a mí.
+                    <br><br>
+                    Parece que fue ayer cuando empezamos este viaje,
+                    y hoy no puedo imaginar mi vida sin tu risa y tu apoyo. Gracias por ser mi lugar seguro y mi aventura favorita.
+                    ¡Feliz cumpleaños, mi amor!
+                </p>
+                <p class="signature">Te amo infinito.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    // --- SCRIPT PARA LA LLUVIA DE CORAZONES ---
+    function createFallingHeart() {
+        const heart = document.createElement('div');
+        heart.classList.add('falling-heart');
+        heart.innerHTML = ['❤️', '💖', '✨', '🥰'][Math.floor(Math.random() * 4)]; // Variedad de emojis
+        heart.style.left = Math.random() * 100 + 'vw'; // Posición horizontal aleatoria
+        heart.style.animationDuration = Math.random() * 3 + 4 + 's'; // Duración entre 4s y 7s
+        heart.style.fontSize = Math.random() * 15 + 15 + 'px'; // Tamaño variable
+
+        document.getElementById('falling-hearts-container').appendChild(heart);
+
+        // Eliminar el corazón después de que caiga para no sobrecargar el navegador
+        setTimeout(() => {
+            heart.remove();
+        }, 7000);
+    }
+    // Crear un corazón cada 300 milisegundos
+    setInterval(createFallingHeart, 300);
+
+
+    // --- SCRIPT PARA LAS INTERACCIONES ---
+    const envelopeStage = document.getElementById('envelopeStage');
+    const openBtn = document.getElementById('openBtn');
+    const letterCard = document.getElementById('letterCard');
+
+    // 1. Acción al tocar el botón "Abre aquí"
+    openBtn.addEventListener('click', function() {
+        // Ocultar el sobre con animación
+        envelopeStage.classList.add('hidden');
+
+        // Mostrar la carta después de una pequeña pausa
+        setTimeout(() => {
+            letterCard.classList.add('visible');
+        }, 300);
+    });
+
+    // 2. Acción al tocar la carta (para girarla)
+    letterCard.addEventListener('click', function() {
+        // Alternar la clase 'is-flipped' para activar el giro CSS
+        letterCard.classList.toggle('is-flipped');
+    });
+
+</script>
+
+</body>
+</html>
